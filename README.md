@@ -1,5 +1,5 @@
-# QBotForLiteloader_McBDS 简介
-Use the QBot through the Liteloader on the MCBDS, and the framework uses OICQ
+# QBotForLiteloader 简介
+
 本插件用于在Liteloader加载下在MCBDS服务端内使用QQ群Bot与QQ频道Bot（后者暂未开发）
 
 Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.4.3-dev版本
