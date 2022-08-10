@@ -4,12 +4,19 @@
 
 Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.4.3-dev版本
 
+# v0.0.2 更新说明
+1. 修改登陆方式：由于BDS在win的CMD控制台下运行会导致扫码登陆时的二维码显示异常，因此更改了Win下的登陆方式，可通过输入指令"qrcode"来手动打开图片弹窗进行扫码登陆，其中特别感谢[HuoHuas001](https://github.com/HuoHuas001)协助开发了图片弹窗
+2. 添加一条注册控制台指令，主要是用于解决在BDS控制台输入时会与bds、node分离的问题，需要输入两遍指令才能执行图片弹窗
+3. 增加了子进程模块、OS模块，主要用于判断是否为Windows-NT系统并使用弹窗方案进行登录
+
+
 # 使用方法
 将**支持node插件的Liteloader版本**装载至BDS-Win版后，下载[Release](https://github.com/yanhy2000/QBotForLiteloader/releases)中的.zip文件，并将其放置BDS文件夹内的plugins文件夹（无须解压）,启动服务端即可
-第一次启动后请关服并手动修改配置文件，修改后再次开服，如果遇到扫码登陆发现控制台的二维码不整齐，可以去 plugins/QQ-Bot/bot_data/qq号/ 文件夹内手动打开图片扫码，后续会进行优化，静等开发
+第一次启动后请关服并手动修改配置文件，修改后再次开服，如果遇到扫码登陆发现控制台的二维码不整齐，可以去 plugins/QBot/bot_data/qq号/ 文件夹内手动打开图片扫码，后续会进行优化，静等开发
 
 # 配置文件说明
-第一次启动本插件会由Liteloader自动装载相关依赖，且插件会生成配置文件在*BDS/plugins/QQ-bot*内，您需要修改**Config.json**文件内相关内容，详解如下：
+第一次启动本插件会由Liteloader自动装载相关依赖，且插件会生成配置文件在*BDS/plugins/QBot*内，您需要修改**Config.json**文件内相关内容，详解如下：
+
 *机器人管理员与群管理员不同，前者需要在配置文件手动设置*
 ```
 {
@@ -34,5 +41,13 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 	}
 }
 ```
+# 插件文件结构
 
-# 更多内容待补充，本插件正在开发中...
+- QBot
+ - index.js
+ - package.json
+ - view[r]
+  - ImagePreview.exe
+
+
+### 更多内容待补充，本插件正在开发中...
