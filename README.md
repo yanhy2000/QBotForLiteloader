@@ -5,7 +5,7 @@ Use the QBot through the Liteloader on the MCBDS, and the framework uses OICQ
 Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.4.3-dev版本
 
 # 使用方法
-将**支持node插件的Liteloader版本**装载至BDS-Win版后，下载Release中的.zip文件，并将其放置BDS文件夹内的plugins文件夹（无须解压）,启动服务端即可
+将**支持node插件的Liteloader版本**装载至BDS-Win版后，下载[Release](https://github.com/yanhy2000/QBotForLiteloader/releases)中的.zip文件，并将其放置BDS文件夹内的plugins文件夹（无须解压）,启动服务端即可
 第一次启动后请关服并手动修改配置文件，修改后再次开服，如果遇到扫码登陆发现控制台的二维码不整齐，可以去 plugins/QQ-Bot/bot_data/qq号/ 文件夹内手动打开图片扫码，后续会进行优化，静等开发
 
 # 配置文件说明
