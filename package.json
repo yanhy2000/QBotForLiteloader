@@ -1,0 +1,13 @@
+{
+  "name": "QQ-bot",
+  "version": "0.0.1",
+  "description": "by yanhy2000",
+  "main": "index.js",
+  "author": "yanhy2000",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "log4js": "^6.6.1",
+    "oicq": "^2.3.1"
+  }
+}
