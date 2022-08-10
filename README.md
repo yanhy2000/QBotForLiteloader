@@ -43,11 +43,11 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 ```
 # 插件文件结构
 
- QBot
-|- index.js
-|-- package.json
-|-- view[r]
-|--- ImagePreview.exe
++- QBot
++-- index.js
++-- package.json
++-- view[r]
++--- ImagePreview.exe
 
 
 ### 更多内容待补充，本插件正在开发中...
