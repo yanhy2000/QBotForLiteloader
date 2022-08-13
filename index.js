@@ -1,10 +1,11 @@
-console.log(require == publicRequire);
+// console.log(require == publicRequire);
 // const guild_bot = require("qq-guild-bot");
 const group_bot = require("oicq");
 const childProcess = require("child_process");
 const os = require("os");
 const fs = require("fs");
 const path = require("path");
+const { Server } = require("./Motd");
 const log4js = require("log4js");
 const logger = log4js.getLogger();
 //==================================Config=================================
@@ -39,7 +40,6 @@ function info() {
 }
 function init() {
 	if (!fs.existsSync(conf_path)) {
-		// fs.mkdirSync(bot_path);
 	}
 	try {
 		if (fs.openSync(conf_path, "r")) {
@@ -52,14 +52,6 @@ function init() {
 			//   server_name: "生存服务器",
 			useQQGroup: false,
 			// useQQGuild: false,
-			bds: {
-				cmd_prefix: "#",
-				chat_prefix: "c",
-				ServerChat: true,
-				QQChat: 1,
-				ServerEvent: true,
-				group_cmd: true,
-			},
 			qq: {
 				useQRcode: true,
 				my_group: 12121212,
@@ -67,13 +59,21 @@ function init() {
 				account: 114514,
 				password: "如果启用了扫码，这里可以不填写",
 			},
-			// guild: {
-			//   my_guild: "114114114114114514114",
-			//   appID: 11451411514,
-			//   token: "aaaabbbb",
-			//   intents: ["GUILD_MESSAGES", "GUILD_MEMBERS", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGE"],
-			//   sandbox: false,
-			// },
+			bds: {
+				ServerChat: true,
+				chat_prefix: "c",
+				QQChat: 1,
+				ServerEvent: true,
+				group_cmd: true,
+				cmd_prefix: "#",
+				motd: true,
+				motd_cmd: "查服",
+			},
+
+			server: {
+				ip: "localhost",
+				port: 19132,
+			},
 		};
 		let AdvjsonData = {
 			qq_group: {
@@ -99,19 +99,22 @@ function init() {
 		fs.writeSync(fd, text);
 		fs.closeSync(fd);
 	}
-	mc.regConsoleCmd("qrcode","打开机器人弹窗扫码",e=>{})
+	mc.regConsoleCmd("qrcode", "打开机器人弹窗扫码", (e) => {});
 }
-mc.listen("onConsoleCmd",e=>{
-	if(e=="qrcode"){
-		info("指令已接收，由于插件限制，请再输入一遍指令以打开弹窗，扫码后关闭弹窗即可自动登录，如显示过期请重新扫码")
+
+mc.listen("onConsoleCmd", (e) => {
+	if (e == "qrcode") {
+		info(
+			"[扫码登陆]指令已接收，由于插件限制，请再输入一遍指令以打开弹窗，扫码后关闭弹窗即可自动登录，如显示过期请重新扫码",
+		);
 	}
-	if(e=="stop"){
-		info("Bot准备关闭...")
+	if (e == "stop") {
+		info("Bot准备关闭...");
 		process.exit();
 	}
-})
+});
 
-let input_temp=''
+let input_temp = "";
 function qq_group_init(bot, Conf) {
 	if (Conf.qq.useQRcode) {
 		//使用二维码登陆(推荐，可记录token多次登陆使用)
@@ -131,25 +134,24 @@ function qq_group_init(bot, Conf) {
 							if (input_code == "qrcode") {
 								input_code = "";
 								let qr_path =
-								photo_view +
-								" " +
-								process.cwd() +
-								"\\plugins\\QBot\\bot_data\\" +
-								Conf.qq.account +
-								"\\qrcode.png";
-							childProcess.exec(qr_path, (err, stdout, stderr) => {
-								if (err) {
-									info("弹窗扫码打开失败，请前往", qr_path, "手动扫码！");
-								} else {
-									this.login();
-									// info("弹窗扫码启动成功，输出：", stdout);
-								}
-							});
+									photo_view +
+									" " +
+									process.cwd() +
+									"\\plugins\\QBot\\bot_data\\" +
+									Conf.qq.account +
+									"\\qrcode.png";
+								childProcess.exec(qr_path, (err, stdout, stderr) => {
+									if (err) {
+										info("弹窗扫码打开失败，请前往", qr_path, "手动扫码！");
+									} else {
+										this.login();
+										// info("弹窗扫码启动成功，输出：", stdout);
+									}
+								});
 							}
 						} else {
 							input_code = "";
 						}
-
 					});
 				}
 				process.stdin.once("data", (e) => {
@@ -186,21 +188,10 @@ function qq_group_init(bot, Conf) {
 			.login(password);
 	}
 }
-function qq_guild_init(ws, Conf) {
-	ws.on("READY", (data) => {
-		info("[bot启动] 版本:", data.msg.version);
-		info("[bot启动] 用户id:", data.msg.user.id);
-		info("[bot启动] 用户名:", data.msg.user.username);
-		info("[bot启动] bot状态:", data.msg.user.bot);
-	});
-}
 
 info("==========开始加载GBot机器人==========");
 init();
-var groupBot = "",
-	g_client = "",
-	g_ws = "";
-
+var groupBot = "";
 var Conf = JSON.parse(fs.readFileSync(conf_path)),
 	advConf = JSON.parse(fs.readFileSync(bot_path + "Advanced_Config.json"));
 
@@ -217,9 +208,32 @@ if (Conf.useQQGroup) {
 		groupBot.sendGroupMsg(group_id, str).catch((e) => {});
 	}
 
-	groupBot.on("message", (e) => {
-		// console.log(e);
-	});
+	function motd_be(ip, port, group_id, local = false) {
+		ser = new Server(ip, port);
+		ser.motdbe();
+		setTimeout(() => {
+			let code = ser.serverInfo.code,
+				status = ser.serverInfo.status,
+				motd = ser.serverInfo.motd,
+				ver = ser.serverInfo.version,
+				online = ser.serverInfo.online,
+				upper = ser.serverInfo.upperLimit,
+				delay = ser.serverInfo.delay;
+			if (code == 200) {
+				let str1 = `服务器运行状态:${status}\nMOTD:${motd}\n当前版本:${ver}\n在线人数:${online}/${upper}\n参考延迟:${delay}`;
+				if (local) {
+					let list_str = mc.runcmdEx("list").output.split(":")[1];
+					let str2 = "\n===在线玩家===" + list_str;
+					SendMsg(group_id, str1 + str2);
+				} else {
+					SendMsg(group_id, str1);
+				}
+			} else {
+				info(`服务器访问异常！code:${code}`);
+				SendMsg(group_id, str1);
+			}
+		}, 1000);
+	}
 
 	groupBot.on("message.group", (e) => {
 		if (Conf.qq.my_group == e.group_id) {
@@ -247,9 +261,30 @@ if (Conf.useQQGroup) {
 					e.raw_message,
 				);
 			}
-			// console.log(e);
 		}
 	});
+	if (Conf.bds.motd) {
+		groupBot.on("message.group", (e) => {
+			let str = e.raw_message.split(" ");
+			if (str.indexOf(Conf.bds.motd_cmd) == 0) {
+				let str_len = str.length;
+				if (str_len > 1) {
+					//如果查服指令有参数，将处理为查其他服
+					if (str_len == 2) {
+						let ip = str[1];
+						motd_be(ip, 19132, e.group_id, false);
+					} else if (str_len == 3) {
+						let ip = str[1],
+							port = str[2];
+						motd_be(ip, port, e.group_id, false);
+					}
+				} else if (str_len == 1 && e.raw_message == Conf.bds.motd_cmd) {
+					//查服指令无参数，仅指令，为查询本服
+					motd_be(Conf.server.ip, Conf.server.port, e.group_id, true);
+				}
+			}
+		});
+	}
 	if (Conf.bds.ServerEvent) {
 		//是否允许转发服务器事件（玩家进出服）
 		mc.listen("onJoin", (pl) => {
@@ -368,17 +403,5 @@ if (Conf.useQQGroup) {
 } else {
 	info("已禁用QQ群机器人！");
 }
-
-// if (Conf.useQQGuild) {
-//   try {
-//     g_client = guild_bot.createOpenAPI(Conf.guild);
-//     g_ws = guild_bot.createWebsocket(Conf.guild);
-//   } catch (e) {
-//     logger.warn(e);
-//   }
-//   qq_guild_init(g_ws, Conf);
-// } else {
-//   info("已禁用QQ频道机器人！");
-// }
 
 info("==========GBot机器人加载完成==========");
