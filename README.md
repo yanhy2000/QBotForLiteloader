@@ -1,8 +1,8 @@
 # QBotForLiteloader 简介
 
-本插件用于在Liteloader加载下在MCBDS服务端内使用QQ群Bot与QQ频道Bot（后者暂未开发）
+本插件用于在Liteloader加载下在MCBDS服务端内使用QQ群Bot（频道Bot暂未开发）
 
-Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.4.3-dev版本
+Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.4.3-dev版本，推荐使用版本>2.5.0
 
 ## v0.0.3 更新说明
 1. 新增Motd模块，用于查询服务器，默认两种模式：查服、查服+参数，可用于查询本机或其他BE服
