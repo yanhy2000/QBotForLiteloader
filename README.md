@@ -9,10 +9,18 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 2. 移除频道部分，后续再做打算
 3. 适配Liteloader 2.5.0版本，可用于BDS1.19.20版本
 
-# 使用环境
 
-Liteloader >=2.5.0
-BDS 1.19.20
+
+## 功能
+1. 群聊聊天内容转发至服聊(可全部转发或者自定义前缀转发）
+2. BDS服务器聊天转发至Q群
+3. Bot管理员可在群内发出指令至BDS控制台（自定义操作指令前缀）
+4. 群内查服指令，可查询本机或者其他服（可自定义指令内容）
+5. （正在开发）查询服务器系统相关状态
+
+# 使用环境
+- Liteloader >=2.5.0
+- BDS 1.19.20
 
 # 使用方法
 将**支持node插件的Liteloader版本**装载至BDS-Win版后，下载[Release](https://github.com/yanhy2000/QBotForLiteloader/releases)中的.llplugin文件，并将其放置BDS文件夹内的plugins文件夹（不需要改名）,启动服务端即可
