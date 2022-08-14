@@ -185,8 +185,11 @@ function qq_group_init(bot, Conf) {
 					}
 				});
 			})
-			.on("system.login.error", function (e) {
-				if (e.code < 0) this.login();
+			.on("system.offline", () => {
+				info("账号已退出！输入 relogin 即可重新登录！");
+			})
+			.on("system.login.error", (e) => {
+				info("登录时遇到错误！详细信息：", e);
 			})
 			.login();
 	} else {

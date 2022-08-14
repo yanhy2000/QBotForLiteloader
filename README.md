@@ -2,12 +2,14 @@
 
 本插件用于在Liteloader加载下在MCBDS服务端内使用QQ群Bot（频道Bot暂未开发）
 
-Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.4.3-dev版本，推荐使用版本>2.5.0
+Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.5.0版本，推荐使用版本>2.5.0
 
-## v0.0.3 更新说明
-1. 新增Motd模块，用于查询服务器，默认两种模式：查服、查服+参数，可用于查询本机或其他BE服
-2. 移除频道部分，后续再做打算
-3. 适配Liteloader 2.5.0版本，可用于BDS1.19.20版本
+## v0.0.4 更新说明
+1. 修复密码登陆模块，新增错误监听事件
+2. 由于二维码是OICQ框架发起，因此在部分控制台上无法正确显示且无法修复，在win桌面环境、面板服终端环境下推荐使用**密码登陆**，默认配置文件已修改为密码登陆
+3. **由于tx扫码登陆策略更改，现在只能在同一个IP内的手机电脑进行扫码**，推荐在本地电脑扫码后，将*plugins/QBot/bot_data*文件夹打包上传至服务器进行替换，即可正常使用
+4. 密码登陆时请在配置文件输入账号及密码，并将扫码设置为false即可；正常情况下只需要打开链接在浏览器扫码即可，如遇到需要滑块输入ticket可配合[TxCaptchaHelper](https://github.com/mzdluo123/TxCaptchaHelper)，密码登陆后可长期使用
+5. 修复在BDS输入stop后一直卡在*Quit correctly*的问题(如依然存在卡住的问题请提issus并截图最后几行，这个问题较为玄学，疑似log4js日志造成)
 
 
 
@@ -23,25 +25,30 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 - BDS 1.19.20
 
 # 使用方法
-将**支持node插件的Liteloader版本**装载至BDS-Win版后，下载[Release](https://github.com/yanhy2000/QBotForLiteloader/releases)中的.llplugin文件，并将其放置BDS文件夹内的plugins文件夹（不需要改名）,启动服务端即可
-第一次启动后请关服并手动修改配置文件，修改后再次开服，如果遇到扫码登陆发现控制台的二维码不整齐，可以去 plugins/QBot/bot_data/qq号/ 文件夹内手动打开图片扫码，后续会进行优化，静等开发
+- 配置一个 Liteloader>=2.5.0 版本的BDS服务端(过程请参考[Liteloader安装](https://github.com/LiteLDev/LiteLoaderBDS/blob/main/README_zh-cn.md#-%E5%AE%89%E8%A3%85))
+- 下载本项目中[Release](https://github.com/yanhy2000/QBotForLiteloader/releases)的最新版本插件，后缀为.llplugin格式
+- 将插件放置在 BDS根目录/plugins 文件夹内，不需要改名以及其他操作
+- 启动服务端，会自动进行插件初始化安装，等待开服完成后再手动关服
+- 打开文件夹 BDS根目录/plugins/QBot ,打开*config.json*配置文件，对照下方详解进行修改，其中高级配置文件*Advanced_Config.json*无需修改，高级配置文件后续会更新详解
+- 保存后重新开服，开服完成后自动进入登录模式，如扫码登陆异常请切换其他方式
 
 # 配置文件说明
+*机器人管理员与群管理员不同，前者需要在配置文件手动设置*
+
 第一次启动本插件会由Liteloader自动装载相关依赖，且插件会生成配置文件在*BDS/plugins/QBot*内，您需要修改**Config.json**文件内相关内容，详解如下：
 
-*机器人管理员与群管理员不同，前者需要在配置文件手动设置*
 ```
 {
 	"useQQGroup": false,//默认为禁用，使用群机器人时请启用，设置为true
 	"qq": {
-		"useQRcode": true,//是否使用扫码登陆，为true时最下面的密码失效，否则请手动填写密码
+		"useQRcode": true,//是否使用扫码登陆，为true时最下面的密码失效，否则请手动填写密码，如要扫码需要在自己电脑上扫码后再上传服务器，tx现在不允许异地登录扫码
 		"my_group": 12121212,//群号（目前只开放这一个，多群等后续开放）
 		"admin": [//机器人管理员，可在群内发指令到后台
 			114514,
 			1919810
 		],
 		"account": 114514,//机器人账号
-		"password": "如果启用了扫码，这里可以不填写"
+		"password": "扫码仅支持在同一个IP的手机扫码！如果启用了扫码，这里可以不填写"
 	}
 	"bds": {
 		"ServerChat": true,//是否开启服务器聊天转发至群
