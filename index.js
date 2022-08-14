@@ -14,6 +14,7 @@ var bot_path = "plugins/QBot/",
 	photo_view =
 		process.cwd() + "\\plugins\\nodejs\\QBot\\view\\ImagePreview.exe",
 	prefix = "[QBot]";
+
 log4js.configure({
 	appenders: {
 		ruleConsole: { type: "console" },
@@ -36,6 +37,15 @@ function info() {
 		str = str + arguments[i];
 	}
 	logger.info(prefix, str);
+	// console.info(prefix, str)
+	str = "";
+}
+function warn() {
+	let str = "";
+	for (let i = 0; i < arguments.length; i++) {
+		str = str + arguments[i];
+	}
+	logger.warn(prefix, str);
 	str = "";
 }
 function init() {
@@ -53,11 +63,12 @@ function init() {
 			useQQGroup: false,
 			// useQQGuild: false,
 			qq: {
-				useQRcode: true,
+				useQRcode: false,
 				my_group: 12121212,
-				admin: [114514, 1919810],
+				admin: [114514],
 				account: 114514,
-				password: "如果启用了扫码，这里可以不填写",
+				password:
+					"扫码仅支持在同一个IP的手机扫码！如果启用了扫码，这里可以不填写",
 			},
 			bds: {
 				ServerChat: true,
@@ -100,32 +111,40 @@ function init() {
 		fs.closeSync(fd);
 	}
 	mc.regConsoleCmd("qrcode", "打开机器人弹窗扫码", (e) => {});
+	mc.regConsoleCmd("relogin", "重新登录机器人", (e) => {});
 }
 
 mc.listen("onConsoleCmd", (e) => {
 	if (e == "qrcode") {
 		info(
-			"[扫码登陆]指令已接收，由于插件限制，请再输入一遍指令以打开弹窗，扫码后关闭弹窗即可自动登录，如显示过期请重新扫码",
+			"[扫码登陆]指令已接收，扫码仅支持在同一个IP的手机扫码！由于插件限制，请再输入一遍指令以打开弹窗，扫码后关闭弹窗即可自动登录，如显示过期请重新扫码",
 		);
 	}
 	if (e == "stop") {
 		info("Bot准备关闭...");
 		process.exit();
 	}
+	if (e == "relogin" && !Conf.qq.useQRcode) {
+		//检测登陆方式，以便于重新登录
+		bot.login(Conf.qq.password);
+	} else if (e == "relogin" && Conf.qq.useQRcode) {
+		bot.login();
+	}
 });
 
 let input_temp = "";
 function qq_group_init(bot, Conf) {
 	if (Conf.qq.useQRcode) {
-		//使用二维码登陆(推荐，可记录token多次登陆使用)
+		//使用二维码登陆(可记录token多次登陆使用)
+		info("本次使用二维码扫码进行登陆");
 		bot
 			.on("system.login.qrcode", function (e) {
-				this.logger.mark("扫码后按Enter完成登录");
+				info("扫码后按Enter完成登录");
 				// console.log(os.type());
 				let input_code = "";
 				if (os.type() == "Windows_NT") {
 					info(
-						"检测到正在使用win系统，如二维码加载异常请输入 qrcode 打开弹窗扫码",
+						"检测到正在使用win系统(弹窗不支持面板服)，如二维码加载异常请输入 qrcode 打开弹窗扫码，扫码仅支持在同一个IP的手机扫码！",
 					);
 					process.stdin.once("data", (e) => {
 						let input = e.toString().trim();
@@ -171,21 +190,29 @@ function qq_group_init(bot, Conf) {
 			})
 			.login();
 	} else {
-		//使用密码登陆，可能要求滑块
+		//使用密码登陆，可能要求滑块（已修复，推荐使用密码，稳定且长期）
+		info("本次使用密码进行登陆");
 		bot
-			.on("system.login.slider", function (event) {
-				this.logger.mark("需要验证滑块登陆！");
-				process.stdin.once("data", (input) => {
-					this.sliderLogin(input);
-				});
+			.on("system.login.slider", () => {
+				info("输入ticket：");
+				process.stdin.once("data", (ticket) =>
+					this.submitSlider(String(ticket).trim()),
+				);
 			})
-			.on("system.login.device", function (event) {
-				this.logger.mark("验证完成后按回车登录");
+			.on("system.login.device", function (e) {
+				info("监听到设备锁事件:", e);
+				info("验证完成后按回车登录");
 				process.stdin.once("data", () => {
-					this.login();
+					this.login(Conf.qq.password);
 				});
 			})
-			.login(password);
+			.on("system.offline", () => {
+				info("账号已退出！输入 relogin 即可重新登录！");
+			})
+			.on("system.login.error", (e) => {
+				info("登录时遇到错误！详细信息：", e);
+			})
+			.login(Conf.qq.password);
 	}
 }
 
@@ -200,7 +227,7 @@ if (Conf.useQQGroup) {
 	try {
 		groupBot = group_bot.createClient(Conf.qq.account, advConf.qq_group);
 	} catch (e) {
-		logger.warn(e);
+		warn(e);
 	}
 	qq_group_init(groupBot, Conf);
 
@@ -229,7 +256,7 @@ if (Conf.useQQGroup) {
 					SendMsg(group_id, str1);
 				}
 			} else {
-				info(`服务器访问异常！code:${code}`);
+				warn(`服务器访问异常！code:${code}`);
 				SendMsg(group_id, str1);
 			}
 		}, 1000);
