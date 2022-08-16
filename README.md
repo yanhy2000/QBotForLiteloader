@@ -2,7 +2,7 @@
 
 本插件用于在Liteloader加载下在MCBDS服务端内使用QQ群Bot（频道Bot暂未开发）
 
-Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.5.0版本，推荐使用版本>2.5.0
+Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.5.0版本，推荐使用版本>=2.5.0
 
 ## v0.0.4 更新说明
 1. 修复密码登陆模块，新增错误监听事件
