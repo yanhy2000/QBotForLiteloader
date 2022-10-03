@@ -318,13 +318,13 @@ if (Conf.useQQGroup) {
 	if (Conf.bds.ServerEvent) {
 		//是否允许转发服务器事件（玩家进出服）
 		mc.listen("onJoin", (pl) => {
-			info("[bot事件]玩家 ", pl.name, " 进入服务器");
-			let str = "玩家 <" + pl.name + "> 进入服务器";
+			info("[bot事件]玩家 ", pl.realName, " 进入服务器");
+			let str = "玩家 <" + pl.realName + "> 进入服务器";
 			SendMsg(Conf.qq.my_group, str);
 		});
 		mc.listen("onLeft", (pl) => {
-			info("[bot事件]玩家 ", pl.name, " 离开服务器");
-			let str = "玩家 <" + pl.name + "> 离开服务器";
+			info("[bot事件]玩家 ", pl.realName, " 离开服务器");
+			let str = "玩家 <" + pl.realName + "> 离开服务器";
 			SendMsg(Conf.qq.my_group, str);
 		});
 	} else {
@@ -333,8 +333,8 @@ if (Conf.useQQGroup) {
 	if (Conf.bds.ServerChat) {
 		//是否允许转发服务器内聊天到群聊
 		mc.listen("onChat", (pl, msg) => {
-			info("[bot事件] <", pl.name, "> ", msg);
-			let str = "<" + pl.name + "> " + msg;
+			info("[bot事件] <", pl.realName, "> ", msg);
+			let str = "<" + pl.realName + "> " + msg;
 			SendMsg(Conf.qq.my_group, str);
 		});
 	} else {
