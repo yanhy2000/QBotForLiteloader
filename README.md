@@ -4,6 +4,8 @@
 
 Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.5.0版本，推荐使用版本>=2.5.0
 
+> 近期事情多比较忙，如有建议或bug反馈可提issue，尽可能抽空维护
+
 ## v0.0.4 更新说明
 1. 修复密码登陆模块，新增错误监听事件
 2. 由于二维码是OICQ框架发起，因此在部分控制台上无法正确显示且无法修复，在win桌面环境、面板服终端环境下推荐使用**密码登陆**，默认配置文件已修改为密码登陆
