@@ -63,12 +63,11 @@ function init() {
 			useQQGroup: false,
 			// useQQGuild: false,
 			qq: {
-				useQRcode: false,
 				my_group: 12121212,
 				admin: [114514],
 				account: 114514,
 				password:
-					"扫码仅支持在同一个IP的手机扫码！如果启用了扫码，这里可以不填写",
+					"不填写密码则为扫码，请务必修改此处",
 			},
 			bds: {
 				ServerChat: true,
@@ -114,86 +113,35 @@ function init() {
 	mc.regConsoleCmd("relogin", "重新登录机器人", (e) => {});
 }
 
-mc.listen("onConsoleCmd", (e) => {
-	if (e == "qrcode") {
-		info(
-			"[扫码登陆]指令已接收，扫码仅支持在同一个IP的手机扫码！由于插件限制，请再输入一遍指令以打开弹窗，扫码后关闭弹窗即可自动登录，如显示过期请重新扫码",
-		);
+mc.listen("onConsoleCmd", (cmd) => {
+	if (cmd == "qrcode") {
+		info("准备打开窗口二维码...")
+		let qr_path =photo_view +" " +process.cwd() +"\\plugins\\QBot\\bot_data\\" +Conf.qq.account +"\\qrcode.png";
+	childProcess.exec(qr_path, (err, stdout, stderr) => {
+		if (err) {
+			info("弹窗扫码打开失败，请前往", qr_path, "手动扫码！");
+		} else {
+			groupBot.login();
+		}
+	});
 	}
-	if (e == "stop") {
+	if (cmd == "stop") {
 		info("Bot准备关闭...");
 		process.exit();
 	}
-	if (e == "relogin" && !Conf.qq.useQRcode) {
-		//检测登陆方式，以便于重新登录
-		bot.login(Conf.qq.password);
-	} else if (e == "relogin" && Conf.qq.useQRcode) {
-		bot.login();
-	}
+	if (cmd == "relogin" ) {
+		groupBot.login(Conf.qq.password);
+	} 
 });
 
 let input_temp = "";
 function qq_group_init(bot, Conf) {
-	if (Conf.qq.useQRcode) {
-		//使用二维码登陆(可记录token多次登陆使用)
+	if (Conf.qq.password == "") {
+		//使用二维码登陆(仅在本地登陆，需同一个IP)
 		info("本次使用二维码扫码进行登陆");
-		bot
-			.on("system.login.qrcode", function (e) {
-				info("扫码后按Enter完成登录");
-				// console.log(os.type());
-				let input_code = "";
-				if (os.type() == "Windows_NT") {
-					info(
-						"检测到正在使用win系统(弹窗不支持面板服)，如二维码加载异常请输入 qrcode 打开弹窗扫码，扫码仅支持在同一个IP的手机扫码！",
-					);
-					process.stdin.once("data", (e) => {
-						let input = e.toString().trim();
-						if (!input_code) {
-							input_code = input;
-							if (input_code == "qrcode") {
-								input_code = "";
-								let qr_path =
-									photo_view +
-									" " +
-									process.cwd() +
-									"\\plugins\\QBot\\bot_data\\" +
-									Conf.qq.account +
-									"\\qrcode.png";
-								childProcess.exec(qr_path, (err, stdout, stderr) => {
-									if (err) {
-										info("弹窗扫码打开失败，请前往", qr_path, "手动扫码！");
-									} else {
-										this.login();
-										// info("弹窗扫码启动成功，输出：", stdout);
-									}
-								});
-							}
-						} else {
-							input_code = "";
-						}
-					});
-				}
-				process.stdin.once("data", (e) => {
-					if (!input_temp) {
-						input_temp = e.toString().trim();
-						if (input_temp != "qrcode") {
-							this.login();
-							input_temp = "";
-						}
-					} else {
-						input_temp = "";
-					}
-				});
-			})
-			.on("system.offline", () => {
-				info("账号已退出！输入 relogin 即可重新登录！");
-			})
-			.on("system.login.error", (e) => {
-				info("登录时遇到错误！详细信息：", e);
-			})
-			.login();
+		bot.login();
 	} else {
-		//使用密码登陆，可能要求滑块（已修复，推荐使用密码，稳定且长期）
+		//使用密码登陆，可能要求滑块(可使用短信验证）
 		info("本次使用密码进行登陆");
 		bot
 			.on("system.login.slider", () => {
@@ -209,6 +157,28 @@ function qq_group_init(bot, Conf) {
 					this.login(Conf.qq.password);
 				});
 			})
+			.on("system.login.device", () => {
+				info("输入密保手机收到的短信验证码后按下回车键继续");
+				bot.sendSmsCode();
+				process.stdin.once("data", (input) => {
+					this.submitSmsCode(input.toString());
+				});
+			  })
+			.on("system.login.qrcode", function (e) {
+				info("扫码后按Enter完成登录");
+				let input_code = "";
+				if (os.type() == "Windows_NT") {
+					info(
+						"检测到使用win，如二维码异常请输入 qrcode 打开弹窗扫码(弹窗不支持面板服)，扫码仅支持在同一个IP的手机扫码！",
+					);
+				}
+			})
+			.on("system.offline", () => {
+				info("账号已退出！输入 relogin 即可重新登录！");
+				})
+			.on("system.login.error", (e) => {
+				info("登录时遇到错误！详细信息：", e);
+				})
 			.on("system.offline", () => {
 				info("账号已退出！输入 relogin 即可重新登录！");
 			})
@@ -349,12 +319,8 @@ if (Conf.useQQGroup) {
 			) {
 				//这里填充为bds的指令，用于转发到服内
 				if (e.sender.card != "") {
-					let str =
-						'tellraw @a {"rawtext":[{"text":"§2<' +
-						e.sender.card +
-						"> " +
-						e.raw_message +
-						'"}]}';
+					let card = e.sender.card,msg = e.raw_message
+					let str = "tellraw @a {\"rawtext\":[{\"text\":\"§2<" + card + "> " + msg + "\"}]}";
 					mc.runcmdEx(str);
 				} else {
 					let str =
