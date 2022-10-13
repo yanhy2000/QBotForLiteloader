@@ -150,13 +150,6 @@ function qq_group_init(bot, Conf) {
 					this.submitSlider(String(ticket).trim()),
 				);
 			})
-			.on("system.login.device", function (e) {
-				info("监听到设备锁事件:", e);
-				info("验证完成后按回车登录");
-				process.stdin.once("data", () => {
-					this.login(Conf.qq.password);
-				});
-			})
 			.on("system.login.device", () => {
 				info("输入密保手机收到的短信验证码后按下回车键继续");
 				bot.sendSmsCode();
@@ -164,7 +157,7 @@ function qq_group_init(bot, Conf) {
 					this.submitSmsCode(input.toString());
 				});
 			  })
-			.on("system.login.qrcode", function (e) {
+			.on("system.login.qrcode", ()=> {
 				info("扫码后按Enter完成登录");
 				let input_code = "";
 				if (os.type() == "Windows_NT") {
