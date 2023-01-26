@@ -2,16 +2,20 @@
 
 本插件用于在Liteloader加载下在MCBDS服务端内使用QQ群Bot（频道Bot暂未开发）
 
-Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，开发时使用2.7.1版本，推荐使用版本>=2.7.1
+Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Liteloader](https://github.com/LiteLDev/LiteLoaderBDS)加载本插件，推荐使用版本>=2.9.0
 
 > 近期事情多比较忙，如有建议或bug反馈可提issue，尽可能抽空维护
 
-## v0.0.5 更新说明
-1. 修复密码登陆模块，新增短信验证
-2. 合并登陆方式，通过判断是否填写密码选择登陆方式
-3. 登陆验证方式：滑块验证、短信验证，登陆方式：扫码登陆（有几率滑块）、账号密码登陆（有几率滑块，可被短信验证码替代）
-4. 修复qrcode指令需要输入两遍的bug
-
+## v0.0.6 更新说明
+0. 无Liteloader API更新，兼容Liteloader>=2.7.1，Readme已更新
+1. 修复 密码登陆滑块验证时提交无法ticket与sms
+2. 调整 监听事件与调用api逻辑顺序以优化性能
+3. 修复 二维码登陆卡控制台及无输入
+4. 修复 自定义聊天\指令前缀仅支持单字符问题
+5. 增加 配置文件版本与初始配置验证
+6. 增加 管理员可私聊机器人执行指令
+7. 增加 配置文件可修改消息格式
+8. 更新开发环境：Liteloader=2.9.0 BDS=1.19.51
 
 ## 功能
 1. 群聊聊天内容转发至服聊(可全部转发或者自定义前缀转发）
@@ -22,7 +26,7 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 
 # 使用环境
 - Liteloader >=2.7.1
-- BDS 1.19.30
+- BDS >=1.19.30
 
 # 使用方法
 - 配置一个 Liteloader>=2.7.1 版本的BDS服务端(过程请参考[Liteloader安装](https://github.com/LiteLDev/LiteLoaderBDS/blob/main/README_zh-cn.md#-%E5%AE%89%E8%A3%85))
@@ -41,37 +45,47 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 {
 	"useQQGroup": false,//默认为禁用，使用群机器人时请启用，设置为true
 	"qq": {
-		"my_group": 12121212,//群号（目前只开放这一个，多群等后续开放）
+		"my_group": 123123,//群号（目前只开放这一个，多群等后续开放）
 		"admin": [//机器人管理员，可在群内发指令到后台
-			114514,
-			1919810
+			123123,
+			123123456
 		],
-		"account": 114514,//机器人账号
-		"password": "不填写密码则为扫码，请务必修改此处"
+		"account": 123123,//机器人账号
+		"password": ""//不填写密码则为扫码
 	}
 	"bds": {
 		"ServerChat": true,//是否开启服务器聊天转发至群
-		"chat_prefix": "c",//(仅单字符)用户从群内发聊天信息至BDS的前缀
-		"QQChat": 1,//QQ群聊天设置，0=不转发至服务器；1=全部聊天转发至服务器(小卡片、图片等会简化为[图片]等传输);2=不全部转发，而是使用前面设置的聊天前缀来转发至服内
+		"chat_prefix": "chat",//玩家从群内发聊天信息至BDS的前缀(例 "chat 你好")
+		"QQChat": 2,//群聊设置，0=群-x-服;  1=群(全部聊天)->-服 (图片等会简化为[图片]等传输);	2=群(带前缀的聊天)->-服
 		"ServerEvent": true,//是否转发服务器事件，目前的事件有：玩家进出服
 		"group_cmd": true//是否开启机器人管理员在群内发指令到BDS后台
-		"cmd_prefix": "#",//(仅单字符)机器人管理员从群内向BDS发指令的前缀
-		motd: true,//是否开启群聊内全部人使用查服的权限（功能含查本机和查其他服，例如"查服","查服 a.abc.com 19132"，端口可不输入）
-		motd_cmd: "查服",//群内使用查服指令的前缀，可以用符号、文字、数字等，不能有空格在指令内
+		"private_cmd": true, //管理员私聊机器人执行指令
+		"cmd_prefix": "cmd",//(仅单字符)机器人管理员从群内向BDS发指令的前缀 (例 "cmd whitelist add player")
+		"motd": true,//是否开启群聊内全部人使用查服的权限（功能含查本机和查其他服，例如"查服","查服 a.abc.com 19132"，端口可不输入）
+		"motd_cmd": "查服",//群内使用查服指令的前缀，可以用符号、文字、数字等，如"查服" "查服 server.com" "查服 server.com 19132"
 	},
 	server: {
 		ip: "localhost",//目前用于查询服务器时设置本机ip，后续可能用于多服联动
 		port: 19132,//同上
 	},
+	"format": {
+		"ServerChat": "<{name}> {msg}",  // 服聊 -> 群聊
+		"QQChat": "§2[QQ]{name}> {msg}",//群聊 -> 服聊
+		"ServerEvent_leave": "玩家 <{name}> 离开服务器",
+		"ServerEvent_join": "玩家 <{name}> 进入服务器",
+		"cmd_error": "指令错误: {cmd_err}",
+		"cmd_succ": "指令输出:{cmd_out}"
+	},
+	"config_version": 0.6 //版本，请勿手动修改
 }
 ```
 
 # TODO
 
-- 增加可自定义修改聊天转发格式
+- （√）增加可自定义修改聊天转发格式
 - 增加插件功能，将机器人常用api与服务端常用api规范并引出
 
-> 歪比巴卜：近期要比赛集训了，可能减少更新频率，但本项目只要有人用，就会一直维护下去~
+> 本项目只要有人用，就会一直维护下去~
 
 高级设置不需要修改，涉及到群机器人设置，默认使用apad设备...
 
