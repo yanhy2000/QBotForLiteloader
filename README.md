@@ -6,7 +6,7 @@ Bot框架采用[oicq](https://github.com/takayama-lily/oicq),目前使用[Litelo
 
 > 近期事情多比较忙，如有建议或bug反馈可提issue，尽可能抽空维护
 
-## v0.0.7 更新说明
+## v0.7 更新说明
 > 该版本需要重新生成配置文件！
 0. 无Liteloader API更新，兼容Liteloader>=2.7.1，Readme已更新
 1. 修复 管理员私聊指令消息未私聊回应
