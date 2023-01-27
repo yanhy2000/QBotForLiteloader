@@ -1,6 +1,6 @@
-// console.log(require == publicRequire);
-// const guild_bot = require("qq-guild-bot");
-var version = 0.6;
+"use strict";
+var version = "v0.7";
+
 const group_bot = require("oicq");
 const childProcess = require("child_process");
 const fs = require("fs");
@@ -14,40 +14,51 @@ var bot_path = "plugins/QBot/",
   photo_view = process.cwd() + "\\plugins\\nodejs\\QBot\\view\\ImagePreview.exe",
   prefix = "[QBot]";
 var Conf = {
-  useQQGroup: false,
-  // useQQGuild: false,
-  qq: {
-    my_group: 123123,
-    admin: [123123],
-    account: 123123,
-    password: "",
-  },
-  bds: {
-    ServerChat: true, //服聊->群聊
-    chat_prefix: "chat",
-    QQChat: 2, // 0：不转发群->服  1：群->服 全部聊天都转发 2：群->服 限定前缀转发，如"chat 你好"
-    ServerEvent: true, //进出服事件
-    group_cmd: true, //群内管理员指令
-    private_cmd: true, //私聊管理员指令
-    cmd_prefix: "cmd", //指令前缀,如"cmd list"
-    motd: true, //查服功能，可查本服、其他服
-    motd_cmd: "查服", //查服前缀，如"查服" "查服 server.com" "查服 server.com 19132"
-  },
+    useGroupBot: false,
+    // useQQGuild: false,
+    qq: {
+      myGroup: 123123,
+      admin: [123123],
+      BotAccount: 123123,
+      password: "",
+    },
+    bds: {
+      ServerChat: 1, //0：不转发群<-服  1：群<-服 全部聊天都转发 2：群<-服 限定前缀转发，如"c 你好"
+      GroupChat: 2, // 0：不转发群->服  1：群->服 全部聊天都转发 2：群->服 限定前缀转发，如"chat 你好"
+      ServerChat_prefix: "c",
+      GroupChat_prefix: "chat",
+      ServerEvent: true, //进出服事件
+      group_cmd: true, //群内管理员指令
+      private_cmd: true, //私聊管理员指令
+      cmd_prefix: "cmd", //指令前缀,如"cmd list"
+      motd: true, //查服功能，可查本服、其他服
+      motd_cmd: "查服", //查服前缀，如"查服" "查服 server.com" "查服 server.com 19132"
+    },
 
-  server: {
-    ip: "localhost",
-    port: 19132,
+    server: {
+      ip: "localhost",
+      port: 19132,
+    },
+    format: {
+      ServerChat: "<{name}> {msg}",
+      GroupChat: "§2[QQ]{name}> {msg}",
+      ServerEvent_leave: "玩家 <{name}> 离开服务器",
+      ServerEvent_join: "玩家 <{name}> 进入服务器",
+      cmd_error: "指令错误: {cmd_err}",
+      cmd_succ: "指令输出: {cmd_out}",
+    },
+    config_version: version,
   },
-  format: {
-    ServerChat: "<{name}> {msg}",
-    QQChat: "§2[QQ]{name}> {msg}",
-    ServerEvent_leave: "玩家 <{name}> 离开服务器",
-    ServerEvent_join: "玩家 <{name}> 进入服务器",
-    cmd_error: "指令错误: {cmd_err}",
-    cmd_succ: "指令输出:{cmd_out}",
-  },
-  config_version: version,
-};
+  advConf = {
+    qq_group: {
+      log_level: "warn",
+      platform: 2,
+      ignore_self: true,
+      resend: true,
+      brief: true,
+      data_dir: bot_path + "bot_data",
+    },
+  };
 
 log4js.configure({
   appenders: {
@@ -88,26 +99,15 @@ function init() {
     if (fs.openSync(conf_path, "r")) {
       //配置文件创建
       if (JSON.parse(fs.readFileSync(conf_path)).config_version == version) {
-        info("配置文件存在，准备启动BOT...");
+        info("配置文件存在,准备启动BOT...");
       } else {
-        info("配置文件版本不符(v", version, ")，请移出旧版配置文件重新生成！");
+        info(`配置文件版本不符(${version})，请移出旧版配置文件重新生成！`);
         process.exit(0);
       }
     }
   } catch (err) {
     info("配置文件不存在！准备创建...");
-    let jsonData = Conf;
-    let AdvjsonData = {
-      qq_group: {
-        log_level: "warn",
-        platform: 2,
-        ignore_self: true,
-        resend: true,
-        brief: true,
-        data_dir: bot_path + "bot_data",
-      },
-    };
-    let text = JSON.stringify(jsonData, null, "\t");
+    let text = JSON.stringify(Conf, null, "\t");
     let file = path.join(bot_path, "config.json");
     var fd = fs.openSync(conf_path, "w");
     fs.writeSync(fd, text);
@@ -116,7 +116,7 @@ function init() {
     info("第一次文件创建完成请手动关闭服务器并修改配置文件后使用！");
     info("-------------------------");
     fs.closeSync(fd);
-    text = JSON.stringify(AdvjsonData, null, "\t");
+    text = JSON.stringify(advConf, null, "\t");
     fd = fs.openSync(bot_path + "Advanced_Config.json", "w");
     fs.writeSync(fd, text);
     fs.closeSync(fd);
@@ -138,7 +138,7 @@ function qq_group_init(bot, Conf) {
       if (e == "qrcode") {
         info("准备打开窗口二维码...");
         let qr_path =
-          photo_view + " " + process.cwd() + "\\plugins\\QBot\\bot_data\\" + Conf.qq.account + "\\qrcode.png";
+          photo_view + " " + process.cwd() + "\\plugins\\QBot\\bot_data\\" + Conf.qq.BotAccount + "\\qrcode.png";
         childProcess.exec(qr_path, (err, stdout, stderr) => {
           if (err) {
             info("弹窗扫码打开失败，请前往", qr_path, "手动扫码！");
@@ -192,16 +192,16 @@ function qq_group_init(bot, Conf) {
   }
 }
 
-info("==========开始加载GBot机器人==========");
+info(`==========开始加载QBot机器人${version}==========`);
 init();
 var groupBot = "";
-(Conf = JSON.parse(fs.readFileSync(conf_path))),
-  (advConf = JSON.parse(fs.readFileSync(bot_path + "Advanced_Config.json")));
+Conf = JSON.parse(fs.readFileSync(conf_path));
+advConf = JSON.parse(fs.readFileSync(bot_path + "Advanced_Config.json"));
 mc.listen("onServerStarted", () => {
-  if (Conf.useQQGroup && Conf.qq.my_group != 123123 && Conf.qq.account != 123123) {
+  if (Conf.useGroupBot && Conf.qq.myGroup != 123123 && Conf.qq.BotAccount != 123123) {
     //启用群机器人
     try {
-      groupBot = group_bot.createClient(Conf.qq.account, advConf.qq_group);
+      groupBot = group_bot.createClient(Conf.qq.BotAccount, advConf.qq_group);
       qq_group_init(groupBot, Conf);
     } catch (e) {
       warn("机器人实例创建失败，请检查配置文件中的机器人账户与群号!");
@@ -209,8 +209,8 @@ mc.listen("onServerStarted", () => {
     }
 
     groupBot.on("message.group", (e) => {
-      if (Conf.qq.my_group == e.group_id) {
-        //筛选指定群=
+      if (Conf.qq.myGroup == e.group_id) {
+        //筛选指定群
         if (e.sender.card != "") {
           info("[", e.group_id, "] ", e.group_name, " <", e.sender.card, "> ", e.raw_message);
         } else {
@@ -243,75 +243,86 @@ mc.listen("onServerStarted", () => {
       mc.listen("onJoin", (pl) => {
         info("[bot事件]玩家 ", pl.realName, " 进入服务器");
         let str = Conf.format.ServerEvent_join.replace("{name}", pl.realName);
-        SendMsg(Conf.qq.my_group, str);
+        SendMsg(Conf.qq.myGroup, str);
       });
       mc.listen("onLeft", (pl) => {
         info("[bot事件]玩家 ", pl.realName, " 离开服务器");
         let str = Conf.format.ServerEvent_leave.replace("{name}", pl.realName);
-        SendMsg(Conf.qq.my_group, str);
+        SendMsg(Conf.qq.myGroup, str);
       });
     } else {
       info("已关闭服务器事件转发!");
     }
-    if (Conf.bds.ServerChat) {
+    if (Conf.bds.ServerChat == 1) {
+      //状态为1：启用全部聊天转发，2：仅指定前缀消息转发，0：不转发
       //是否允许转发服务器内聊天到群聊
       mc.listen("onChat", (pl, msg) => {
         let name = pl.realName;
         info("[bot事件] <", pl.realName, "> ", msg);
-
-        // let str = "<" + name + "> " + msg;
         let str = Conf.format.ServerChat.replace("{name}", name).replace("{msg}", msg);
-        SendMsg(Conf.qq.my_group, str);
+        SendMsg(Conf.qq.myGroup, str);
       });
-    } else {
+    } else if (Conf.bds.ServerChat == 2) {
+      //指定前缀转发到群
+      mc.listen("onChat", (pl, msg) => {
+        let name = pl.realName;
+        if (msg.startsWith(Conf.bds.ServerChat_prefix)) {
+          info("[bot事件] <", name, "> ", msg.split(Conf.bds.ServerChat_prefix)[1]);
+          SendMsg(
+            Conf.qq.myGroup,
+            Conf.format.ServerChat.replace("{name}", name).replace("{msg}", msg.split(Conf.bds.ServerChat_prefix)[1])
+          );
+        }
+      });
+    } else if (Conf.bds.ServerChat == 0) {
       info("已关闭服务器聊天转发!");
     }
-    if (Conf.bds.QQChat == 1) {
+    if (Conf.bds.GroupChat == 1) {
       //状态为1：启用全部聊天转发，2：仅指定前缀消息转发，0：不转发
       groupBot.on("message.group", (e) => {
-        if (Conf.qq.my_group == e.group_id && !e.raw_message.startsWith(Conf.bds.cmd_prefix)) {
+        if (Conf.qq.myGroup == e.group_id && !e.raw_message.startsWith(Conf.bds.cmd_prefix)) {
           //这里填充为bds的指令，用于转发到服内
           let msg = e.raw_message;
           if (e.sender.card != "") {
             let str =
               'tellraw @a {"rawtext":[{"text":"' +
-              Conf.format.QQChat.replace("{name}", e.sender.card).replace("{msg}", msg) +
+              Conf.format.GroupChat.replace("{name}", e.sender.card).replace("{msg}", msg) +
               '"}]}';
             mc.runcmdEx(str);
           } else {
             let str =
               'tellraw @a {"rawtext":[{"text":"' +
-              Conf.format.QQChat.replace("{name}", e.sender.nickname).replace("{msg}", msg) +
+              Conf.format.GroupChat.replace("{name}", e.sender.nickname).replace("{msg}", msg) +
               '"}]}';
             mc.runcmdEx(str);
           }
         }
       });
-    } else if (Conf.bds.QQChat == 2) {
+    } else if (Conf.bds.GroupChat == 2) {
       groupBot.on("message.group", (e) => {
         if (
-          Conf.qq.my_group == e.group_id &&
+          Conf.qq.myGroup == e.group_id &&
           !e.raw_message.startsWith(Conf.bds.cmd_prefix) &&
-          e.raw_message.startsWith(Conf.bds.chat_prefix)
+          e.raw_message.startsWith(Conf.bds.GroupChat_prefix)
         ) {
           //聊天信息，填充为bds的指令，用于转发到服内
-          let msg = e.raw_message.split(Conf.bds.chat_prefix)[1];
+          let msg = e.raw_message.split(Conf.bds.GroupChat_prefix)[1];
           if (e.sender.card != "") {
             let str =
               'tellraw @a {"rawtext":[{"text":"' +
-              Conf.format.QQChat.replace("{name}", e.sender.card).replace("{msg}", msg) +
+              Conf.format.GroupChat.replace("{name}", e.sender.card).replace("{msg}", msg) +
               '"}]}';
             mc.runcmdEx(str);
           } else {
             let str =
               'tellraw @a {"rawtext":[{"text":"' +
-              Conf.format.QQChat.replace("{name}", e.sender.nickname).replace("{msg}", msg) +
+              Conf.format.GroupChat.replace("{name}", e.sender.nickname).replace("{msg}", msg) +
               '"}]}';
             mc.runcmdEx(str);
           }
         }
       });
-    } else if (Conf.bds.QQChat == 0) {
+    } else if (Conf.bds.GroupChat == 0) {
       info("已关闭QQ群聊天转发!");
     }
     if (Conf.bds.group_cmd) {
@@ -334,9 +345,9 @@ mc.listen("onServerStarted", () => {
               let err_cmd = res.output.match(pattern);
               if (pattern.test(res.output)) {
                 //判断指令返回有没有错误，
-                SendMsg(Conf.qq.my_group, Conf.format.cmd_error.replace("{cmd_err}", err_cmd[1]));
+                SendMsg(Conf.qq.myGroup, Conf.format.cmd_error.replace("{cmd_err}", err_cmd[1]));
               } else {
-                SendMsg(Conf.qq.my_group, Conf.format.cmd_succ.replace("{cmd_out}", res.output));
+                SendMsg(Conf.qq.myGroup, Conf.format.cmd_succ.replace("{cmd_out}", res.output));
               }
             }
           }
@@ -364,9 +375,9 @@ mc.listen("onServerStarted", () => {
               let err_cmd = res.output.match(pattern);
               if (pattern.test(res.output)) {
                 //判断指令返回有没有错误，
-                SendMsg(Conf.qq.my_group, Conf.format.cmd_error.replace("{cmd_err}", err_cmd[1]));
+                SendMsg_private(e.user_id, Conf.format.cmd_error.replace("{cmd_err}", err_cmd[1]));
               } else {
-                SendMsg(Conf.qq.my_group, Conf.format.cmd_succ.replace("{cmd_out}", res.output));
+                SendMsg_private(e.user_id, Conf.format.cmd_succ.replace("{cmd_out}", res.output));
               }
             }
           }
@@ -401,15 +412,15 @@ mc.listen("onServerStarted", () => {
             SendMsg(group_id, str1);
           }
         } else {
-          warn(`服务器访问异常！code:${code}`);
-          SendMsg(group_id, `服务器访问异常！code:${code}`);
+          warn(`服务器访问异常! code:${code}`);
+          SendMsg(group_id, `服务器访问异常! code:${code}`);
         }
       }, 1000);
     }
     //=============
   } else {
-    info("已禁用QQ群机器人！如需使用请在配置文件内打开选项并设置 群号 管理员号 机器人账户 密码(可选) ");
+    info("已禁用QQ群机器人! 如需使用请在配置文件内打开选项并设置 群号 管理员号 机器人账户 密码(可选) ");
   }
 });
 
-info("==========GBot机器人加载完成==========");
+info(`==========QBot机器人加载完成${version}==========`);
