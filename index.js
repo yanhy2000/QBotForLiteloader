@@ -1,5 +1,5 @@
 "use strict";
-var version = "v0.7";
+var version = "v0.7.1";
 
 const group_bot = require("oicq");
 const childProcess = require("child_process");
@@ -91,6 +91,12 @@ function warn() {
   }
   logger.warn(prefix, str);
   str = "";
+}
+// 仅分割第一次的split
+String.prototype.splitOnce = function(splitter)
+{
+  let index = this.indexOf(splitter);
+  return index == -1 ? this : [str.slice(0, index), this.slice(index + 1)];
 }
 function init() {
   if (!fs.existsSync(conf_path)) {
@@ -267,10 +273,10 @@ mc.listen("onServerStarted", () => {
       mc.listen("onChat", (pl, msg) => {
         let name = pl.realName;
         if (msg.startsWith(Conf.bds.ServerChat_prefix)) {
-          info("[bot事件] <", name, "> ", msg.split(Conf.bds.ServerChat_prefix)[1]);
+          info("[bot事件] <", name, "> ", msg.splitOnce(Conf.bds.ServerChat_prefix)[1]);
           SendMsg(
             Conf.qq.myGroup,
-            Conf.format.ServerChat.replace("{name}", name).replace("{msg}", msg.split(Conf.bds.ServerChat_prefix)[1])
+            Conf.format.ServerChat.replace("{name}", name).replace("{msg}", msg.splitOnce(Conf.bds.ServerChat_prefix)[1])
           );
         }
       });
@@ -306,7 +312,7 @@ mc.listen("onServerStarted", () => {
           e.raw_message.startsWith(Conf.bds.GroupChat_prefix)
         ) {
           //聊天信息，填充为bds的指令，用于转发到服内
-          let msg = e.raw_message.split(Conf.bds.GroupChat_prefix)[1];
+          let msg = e.raw_message.splitOnce(Conf.bds.GroupChat_prefix)[1];
           if (e.sender.card != "") {
             let str =
               'tellraw @a {"rawtext":[{"text":"' +
