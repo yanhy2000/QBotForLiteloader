@@ -96,7 +96,7 @@ function warn() {
 String.prototype.splitOnce = function(splitter)
 {
   let index = this.indexOf(splitter);
-  return index == -1 ? this : [str.slice(0, index), this.slice(index + 1)];
+  return index == -1 ? this : [this.slice(0, index), this.slice(index + 1)];
 }
 function init() {
   if (!fs.existsSync(conf_path)) {
