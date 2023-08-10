@@ -52,7 +52,7 @@ var Conf = {
   advConf = {
     qq_group: {
       log_level: "warn",
-      platform: 2,
+      platform: 5,
       ignore_self: true,
       resend: true,
       brief: true,
