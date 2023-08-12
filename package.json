@@ -9,7 +9,7 @@
     "child_process": "^1.0.2",
     "dgram": "^1.0.1",
     "fs": "^0.0.1-security",
-    "log4js": "^6.6.1",
+    "log4js": "^6.9.1",
     "oicq": "^2.3.1"
   }
 }
