@@ -1,5 +1,5 @@
 "use strict";
-var version = "v0.7.1";
+var version = "v0.7.2";
 
 const group_bot = require("oicq");
 const childProcess = require("child_process");
